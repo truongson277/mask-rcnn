@@ -1437,14 +1437,16 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks, config):
             # Resize mini mask to size of GT box
             placeholder[gt_y1:gt_y2, gt_x1:gt_x2] = \
                 np.round(skimage.transform.resize(
-                    class_mask, (gt_h, gt_w), order=1, mode="constant")).astype(bool)
+                    #class_mask, (gt_h, gt_w), order=1, mode="constant")).astype(bool)
+                    class_mask, (gt_h, gt_w), order=1, mode="constant", anti_aliasing=False)).astype(bool)
             # Place the mini batch in the placeholder
             class_mask = placeholder
 
         # Pick part of the mask and resize it
         y1, x1, y2, x2 = rois[i].astype(np.int32)
         m = class_mask[y1:y2, x1:x2]
-        mask = skimage.transform.resize(m, config.MASK_SHAPE, order=1, mode="constant")
+        #mask = skimage.transform.resize(m, config.MASK_SHAPE, order=1, mode="constant")
+        mask = skimage.transform.resize(m, config.MASK_SHAPE, order=1, mode="constant", anti_aliasing=False)
         masks[i, :, :, class_id] = mask
 
     return rois, roi_gt_class_ids, bboxes, masks
@@ -2364,7 +2366,7 @@ class MaskRCNN():
         # multiprocessing workers. See discussion here:
         # https://github.com/matterport/Mask_RCNN/issues/13#issuecomment-353124009
         if os.name is 'nt':
-            workers = 0
+            workers = 1
         else:
             workers = multiprocessing.cpu_count()
 
@@ -2378,7 +2380,7 @@ class MaskRCNN():
             validation_steps=self.config.VALIDATION_STEPS,
             max_queue_size=100,
             workers=workers,
-            use_multiprocessing=True,
+            use_multiprocessing=False,
         )
         self.epoch = max(self.epoch, epochs)
 
