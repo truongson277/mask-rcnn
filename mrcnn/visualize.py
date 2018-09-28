@@ -18,6 +18,7 @@ from skimage.measure import find_contours
 import matplotlib.pyplot as plt
 from matplotlib import patches,  lines
 from matplotlib.patches import Polygon
+import matplotlib.image as save
 import IPython.display
 
 # Root directory of the project
@@ -119,7 +120,6 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     ax.set_xlim(-10, width + 10)
     ax.axis('off')
     ax.set_title(title)
-
     masked_image = image.astype(np.uint32).copy()
     for i in range(N):
         color = colors[i]
@@ -164,10 +164,13 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             p = Polygon(verts, facecolor="none", edgecolor=color)
             ax.add_patch(p)
     ax.imshow(masked_image.astype(np.uint8))
+    save.imsave("abd.png")
+
     if auto_show:
         plt.show()
+    # return masked_image
 
-
+        
 def display_differences(image,
                         gt_box, gt_class_id, gt_mask,
                         pred_box, pred_class_id, pred_score, pred_mask,
