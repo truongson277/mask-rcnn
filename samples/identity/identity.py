@@ -319,7 +319,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
 #  Training
 ############################################################
 
-f __name__ == '__main__':
+if __name__ == '__main__':
     import argparse
 
     # Parse command line arguments
