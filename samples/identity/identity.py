@@ -177,86 +177,86 @@ def get_ax(rows=1, cols=1, size=16):
     return ax
 
 
-def final_detection(model, image_path=None, video_path=None):
-    assert image_path or video_path
-
-    # Image or video?
-    if image_path:
-        image = skimage.io.imread(args.image)
-        # Get input and output to classifier and mask heads.
-        file_name = "Detection_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
-        mrcnn = model.run_graph([image], [
-            ("proposals", model.keras_model.get_layer("ROI").output),
-            ("probs", model.keras_model.get_layer("mrcnn_class").output),
-            ("deltas", model.keras_model.get_layer("mrcnn_bbox").output),
-            ("masks", model.keras_model.get_layer("mrcnn_mask").output),
-            ("detections", model.keras_model.get_layer("mrcnn_detection").output),
-        ])
-        # Get detection class IDs. Trim zero padding.
-        det_class_ids = mrcnn['detections'][0, :, 4].astype(np.int32)
-        det_count = np.where(det_class_ids == 0)[0][0]
-        det_class_ids = det_class_ids[:det_count]
-        detections = mrcnn['detections'][0, :det_count]
-
-        captions = ["{} {:.3f}".format(class_names[int(c)], s) if c > 0 else ""
-                    for c, s in zip(detections[:, 4], detections[:, 5])]
-        visualize.draw_boxes(
-            image,
-            refined_boxes=utils.denorm_boxes(detections[:, :4], image.shape[:2]),
-            visibilities=[2] * len(detections),
-            captions=captions, title="Detections",
-            ax=get_ax())
-        # # Get detection class IDs. Trim zero padding.
-        # det_class_ids = mrcnn['detections'][0, :, 4].astype(np.int32)
-        # det_count = np.where(det_class_ids == 0)[0][0]
-        # det_class_ids = det_class_ids[:det_count]
-        # detections = mrcnn['detections'][0, :det_count]
-        # # Proposals are in normalized coordinates. Scale them
-        # # to image coordinates.
-        # h, w = config.IMAGE_SHAPE[:2]
-        # proposals = np.around(mrcnn["proposals"][0] * np.array([h, w, h, w])).astype(np.int32)
-        # # Class ID, score, and mask per proposal
-        # roi_class_ids = np.argmax(mrcnn["probs"][0], axis=1)
-        # roi_scores = mrcnn["probs"][0, np.arange(roi_class_ids.shape[0]), roi_class_ids]
-        # roi_class_names = np.array(class_names)[roi_class_ids]
-        # roi_positive_ixs = np.where(roi_class_ids > 0)[0]
-        # # Class-specific bounding box shifts.
-        # roi_bbox_specific = mrcnn["deltas"][0, np.arange(proposals.shape[0]), roi_class_ids]
-        # # Apply bounding box transformations
-        # # Shape: [N, (y1, x1, y2, x2)]
-        # refined_proposals = utils.apply_box_deltas(
-        #     proposals, roi_bbox_specific * config.BBOX_STD_DEV).astype(np.int32)
-        # # Remove boxes classified as background
-        # keep = np.where(roi_class_ids > 0)[0]
-        # keep = np.intersect1d(keep, np.where(roi_scores >= config.DETECTION_MIN_CONFIDENCE)[0])
-        # # Apply per-class non-max suppression
-        # pre_nms_boxes = refined_proposals[keep]
-        # pre_nms_scores = roi_scores[keep]
-        # pre_nms_class_ids = roi_class_ids[keep]
-        #
-        # nms_keep = []
-        # for class_id in np.unique(pre_nms_class_ids):
-        #     # Pick detections of this class
-        #     ixs = np.where(pre_nms_class_ids == class_id)[0]
-        #     # Apply NMS
-        #     class_keep = utils.non_max_suppression(pre_nms_boxes[ixs],
-        #                                     pre_nms_scores[ixs],
-        #                                     config.DETECTION_NMS_THRESHOLD)
-        #     # Map indicies
-        #     class_keep = keep[ixs[class_keep]]
-        #     nms_keep = np.union1d(nms_keep, class_keep)
-        # keep = np.intersect1d(keep, nms_keep).astype(np.int32)
-        # # Show final detections
-        # ixs = np.arange(len(keep))  # Display all
-        # # ixs = np.random.randint(0, len(keep), 10)  # Display random sample
-        # captions = ["{} {:.3f}".format(class_names[c], s) if c > 0 else ""
-        #             for c, s in zip(roi_class_ids[keep][ixs], roi_scores[keep][ixs])]
-        # visualize.draw_boxes(
-        #         image, boxes=proposals[keep][ixs],
-        #         refined_boxes=refined_proposals[keep][ixs],
-        #         visibilities=np.where(roi_class_ids[keep][ixs] > 0, 1, 0),
-        #         captions=captions, title="Detections after NMS",
-        #         ax=get_ax())
+# def final_detection(model, image_path=None, video_path=None):
+#     assert image_path or video_path
+#
+#     # Image or video?
+#     if image_path:
+#         image = skimage.io.imread(args.image)
+#         # Get input and output to classifier and mask heads.
+#         file_name = "Detection_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
+#         mrcnn = model.run_graph([image], [
+#             ("proposals", model.keras_model.get_layer("ROI").output),
+#             ("probs", model.keras_model.get_layer("mrcnn_class").output),
+#             ("deltas", model.keras_model.get_layer("mrcnn_bbox").output),
+#             ("masks", model.keras_model.get_layer("mrcnn_mask").output),
+#             ("detections", model.keras_model.get_layer("mrcnn_detection").output),
+#         ])
+#         # Get detection class IDs. Trim zero padding.
+#         det_class_ids = mrcnn['detections'][0, :, 4].astype(np.int32)
+#         det_count = np.where(det_class_ids == 0)[0][0]
+#         det_class_ids = det_class_ids[:det_count]
+#         detections = mrcnn['detections'][0, :det_count]
+#
+#         captions = ["{} {:.3f}".format(class_names[int(c)], s) if c > 0 else ""
+#                     for c, s in zip(detections[:, 4], detections[:, 5])]
+#         visualize.draw_boxes(
+#             image,
+#             refined_boxes=utils.denorm_boxes(detections[:, :4], image.shape[:2]),
+#             visibilities=[2] * len(detections),
+#             captions=captions, title="Detections",
+#             ax=get_ax())
+#         # # Get detection class IDs. Trim zero padding.
+#         # det_class_ids = mrcnn['detections'][0, :, 4].astype(np.int32)
+#         # det_count = np.where(det_class_ids == 0)[0][0]
+#         # det_class_ids = det_class_ids[:det_count]
+#         # detections = mrcnn['detections'][0, :det_count]
+#         # # Proposals are in normalized coordinates. Scale them
+#         # # to image coordinates.
+#         # h, w = config.IMAGE_SHAPE[:2]
+#         # proposals = np.around(mrcnn["proposals"][0] * np.array([h, w, h, w])).astype(np.int32)
+#         # # Class ID, score, and mask per proposal
+#         # roi_class_ids = np.argmax(mrcnn["probs"][0], axis=1)
+#         # roi_scores = mrcnn["probs"][0, np.arange(roi_class_ids.shape[0]), roi_class_ids]
+#         # roi_class_names = np.array(class_names)[roi_class_ids]
+#         # roi_positive_ixs = np.where(roi_class_ids > 0)[0]
+#         # # Class-specific bounding box shifts.
+#         # roi_bbox_specific = mrcnn["deltas"][0, np.arange(proposals.shape[0]), roi_class_ids]
+#         # # Apply bounding box transformations
+#         # # Shape: [N, (y1, x1, y2, x2)]
+#         # refined_proposals = utils.apply_box_deltas(
+#         #     proposals, roi_bbox_specific * config.BBOX_STD_DEV).astype(np.int32)
+#         # # Remove boxes classified as background
+#         # keep = np.where(roi_class_ids > 0)[0]
+#         # keep = np.intersect1d(keep, np.where(roi_scores >= config.DETECTION_MIN_CONFIDENCE)[0])
+#         # # Apply per-class non-max suppression
+#         # pre_nms_boxes = refined_proposals[keep]
+#         # pre_nms_scores = roi_scores[keep]
+#         # pre_nms_class_ids = roi_class_ids[keep]
+#         #
+#         # nms_keep = []
+#         # for class_id in np.unique(pre_nms_class_ids):
+#         #     # Pick detections of this class
+#         #     ixs = np.where(pre_nms_class_ids == class_id)[0]
+#         #     # Apply NMS
+#         #     class_keep = utils.non_max_suppression(pre_nms_boxes[ixs],
+#         #                                     pre_nms_scores[ixs],
+#         #                                     config.DETECTION_NMS_THRESHOLD)
+#         #     # Map indicies
+#         #     class_keep = keep[ixs[class_keep]]
+#         #     nms_keep = np.union1d(nms_keep, class_keep)
+#         # keep = np.intersect1d(keep, nms_keep).astype(np.int32)
+#         # # Show final detections
+#         # ixs = np.arange(len(keep))  # Display all
+#         # # ixs = np.random.randint(0, len(keep), 10)  # Display random sample
+#         # captions = ["{} {:.3f}".format(class_names[c], s) if c > 0 else ""
+#         #             for c, s in zip(roi_class_ids[keep][ixs], roi_scores[keep][ixs])]
+#         # visualize.draw_boxes(
+#         #         image, boxes=proposals[keep][ixs],
+#         #         refined_boxes=refined_proposals[keep][ixs],
+#         #         visibilities=np.where(roi_class_ids[keep][ixs] > 0, 1, 0),
+#         #         captions=captions, title="Detections after NMS",
+#         #         ax=get_ax())
 
 
 def detect_and_color_splash(model, image_path=None, video_path=None):
@@ -366,8 +366,6 @@ if __name__ == '__main__':
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
             IMAGES_PER_GPU = 1
-
-
         config = InferenceConfig()
     config.display()
 
