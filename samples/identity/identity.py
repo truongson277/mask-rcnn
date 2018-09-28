@@ -319,18 +319,18 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
 #  Training
 ############################################################
 
-if __name__ == '__main__':
+f __name__ == '__main__':
     import argparse
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Train Mask R-CNN to detect identity.')
+        description='Train Mask R-CNN to detect balloons.')
     parser.add_argument("command",
                         metavar="<command>",
                         help="'train' or 'splash'")
     parser.add_argument('--dataset', required=False,
-                        metavar="/path/to/identity/dataset/",
-                        help='Directory of the Identity dataset')
+                        metavar="/path/to/balloon/dataset/",
+                        help='Directory of the Balloon dataset')
     parser.add_argument('--weights', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
@@ -350,8 +350,8 @@ if __name__ == '__main__':
     if args.command == "train":
         assert args.dataset, "Argument --dataset is required for training"
     elif args.command == "splash":
-        assert args.image or args.video, \
-            "Provide --image or --video to apply color splash"
+        assert args.image or args.video,\
+               "Provide --image or --video to apply color splash"
 
     print("Weights: ", args.weights)
     print("Dataset: ", args.dataset)
@@ -407,10 +407,11 @@ if __name__ == '__main__':
     if args.command == "train":
         train(model)
     elif args.command == "splash":
-         detect_and_color_splash(model, image_path=args.image, video_path=args.video)
-        # final_detection(model, image_path=args.image, video_path=args.video)
+        detect_and_color_splash(model, image_path=args.image,
+                                video_path=args.video)
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))
+
 
 
