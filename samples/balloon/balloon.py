@@ -33,20 +33,14 @@ import json
 import datetime
 import numpy as np
 import skimage.draw
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
 
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
-from mrcnn import utils
 from mrcnn.config import Config
 from mrcnn import model as modellib, utils
-from mrcnn import visualize
-from mrcnn.visualize import display_images
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 # Path to trained weights file
 COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -100,7 +94,7 @@ class BalloonDataset(utils.Dataset):
         dataset_dir = os.path.join(dataset_dir, subset)
 
         # Load annotations
-        # VGG Image Annotator saves each image in the form:
+        # VGG Image Annotator (up to version 1.6) saves each image in the form:
         # { 'filename': '28503151_5b5b7ec140_b.jpg',
         #   'regions': {
         #       '0': {
@@ -114,6 +108,7 @@ class BalloonDataset(utils.Dataset):
         #   'size': 100202
         # }
         # We mostly care about the x and y coordinates of each region
+        # Note: In VIA 2.0, regions was changed from a dict to a list.
         annotations = json.load(open(os.path.join(dataset_dir, "via_region_data.json")))
         annotations = list(annotations.values())  # don't need the dict keys
 
@@ -124,9 +119,13 @@ class BalloonDataset(utils.Dataset):
         # Add images
         for a in annotations:
             # Get the x, y coordinaets of points of the polygons that make up
-            # the outline of each object instance. There are stores in the
+            # the outline of each object instance. These are stores in the
             # shape_attributes (see json format above)
-            polygons = [r['shape_attributes'] for r in a['regions'].values()]
+            # The if condition is needed to support VIA versions 1.x and 2.x.
+            if type(a['regions']) is dict:
+                polygons = [r['shape_attributes'] for r in a['regions'].values()]
+            else:
+                polygons = [r['shape_attributes'] for r in a['regions']] 
 
             # load_mask() needs the image size to convert polygons to masks.
             # Unfortunately, VIA doesn't include it in JSON, so we must read
@@ -177,9 +176,6 @@ class BalloonDataset(utils.Dataset):
             super(self.__class__, self).image_reference(image_id)
 
 
-class_names = ['BG', 'balloon']
-
-
 def train(model):
     """Train the model."""
     # Training dataset.
@@ -199,7 +195,7 @@ def train(model):
     print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=30,
+                epochs=5,
                 layers='heads')
 
 
@@ -223,100 +219,6 @@ def color_splash(image, mask):
     return splash
 
 
-def get_ax(rows=1, cols=1, size=16):
-    """Return a Matplotlib Axes array to be used in
-    all visualizations in the notebook. Provide a
-    central point to control graph sizes.
-
-    Adjust the size attribute to control how big to render images
-    """
-    _, ax = plt.subplots(rows, cols, figsize=(size*cols, size*rows))
-    return ax
-
-
-# def final_detection(model, image_path=None, video_path=None):
-#     assert image_path or video_path
-#
-#     # Image or video?
-#     if image_path:
-#         image = skimage.io.imread(args.image)
-#         # Get input and output to classifier and mask heads.
-#         mrcnn = model.run_graph([image], [
-#             ("proposals", model.keras_model.get_layer("ROI").output),
-#             ("probs", model.keras_model.get_layer("mrcnn_class").output),
-#             ("deltas", model.keras_model.get_layer("mrcnn_bbox").output),
-#             ("masks", model.keras_model.get_layer("mrcnn_mask").output),
-#             ("detections", model.keras_model.get_layer("mrcnn_detection").output),
-#         ])
-#         # Get detection class IDs. Trim zero padding.
-#         det_class_ids = mrcnn['detections'][0, :, 4].astype(np.int32)
-#         det_count = np.where(det_class_ids == 0)[0][0]
-#         det_class_ids = det_class_ids[:det_count]
-#         detections = mrcnn['detections'][0, :det_count]
-#
-#         captions = ["{} {:.3f}".format(class_names[int(c)], s) if c > 0 else ""
-#                     for c, s in zip(detections[:, 4], detections[:, 5])]
-#         visualize.draw_boxes(
-#             image,
-#             refined_boxes=utils.denorm_boxes(detections[:, :4], image.shape[:2]),
-#             visibilities=[2] * len(detections),
-#             captions=captions, title="Detections",
-#             ax=get_ax())
-#         # Get detection class IDs. Trim zero padding.
-#         det_class_ids = mrcnn['detections'][0, :, 4].astype(np.int32)
-#         det_count = np.where(det_class_ids == 0)[0][0]
-#         det_class_ids = det_class_ids[:det_count]
-#         detections = mrcnn['detections'][0, :det_count]
-#         # Proposals are in normalized coordinates. Scale them
-#         # to image coordinates.
-#         h, w = config.IMAGE_SHAPE[:2]
-#         proposals = np.around(mrcnn["proposals"][0] * np.array([h, w, h, w])).astype(np.int32)
-#         # Class ID, score, and mask per proposal
-#         roi_class_ids = np.argmax(mrcnn["probs"][0], axis=1)
-#         roi_scores = mrcnn["probs"][0, np.arange(roi_class_ids.shape[0]), roi_class_ids]
-#         roi_class_names = np.array(class_names)[roi_class_ids]
-#         roi_positive_ixs = np.where(roi_class_ids > 0)[0]
-#         # Class-specific bounding box shifts.
-#         roi_bbox_specific = mrcnn["deltas"][0, np.arange(proposals.shape[0]), roi_class_ids]
-#         # Apply bounding box transformations
-#         # Shape: [N, (y1, x1, y2, x2)]
-#         refined_proposals = utils.apply_box_deltas(
-#             proposals, roi_bbox_specific * config.BBOX_STD_DEV).astype(np.int32)
-#         # Remove boxes classified as background
-#         keep = np.where(roi_class_ids > 0)[0]
-#         keep = np.intersect1d(keep, np.where(roi_scores >= config.DETECTION_MIN_CONFIDENCE)[0])
-#         # Apply per-class non-max suppression
-#         pre_nms_boxes = refined_proposals[keep]
-#         pre_nms_scores = roi_scores[keep]
-#         pre_nms_class_ids = roi_class_ids[keep]
-#
-#         nms_keep = []
-#         for class_id in np.unique(pre_nms_class_ids):
-#             # Pick detections of this class
-#             ixs = np.where(pre_nms_class_ids == class_id)[0]
-#             # Apply NMS
-#             class_keep = utils.non_max_suppression(pre_nms_boxes[ixs],
-#                                             pre_nms_scores[ixs],
-#                                             config.DETECTION_NMS_THRESHOLD)
-#             # Map indicies
-#             class_keep = keep[ixs[class_keep]]
-#             nms_keep = np.union1d(nms_keep, class_keep)
-#         keep = np.intersect1d(keep, nms_keep).astype(np.int32)
-#         # Show final detections
-#         ixs = np.arange(len(keep))  # Display all
-#         # ixs = np.random.randint(0, len(keep), 10)  # Display random sample
-#         captions = ["{} {:.3f}".format(class_names[c], s) if c > 0 else ""
-#                     for c, s in zip(roi_class_ids[keep][ixs], roi_scores[keep][ixs])]
-#         visualize.draw_boxes(
-#                 image, boxes=proposals[keep][ixs],
-#                 refined_boxes=refined_proposals[keep][ixs],
-#                 visibilities=np.where(roi_class_ids[keep][ixs] > 0, 1, 0),
-#                 captions=captions, title="Detections after NMS",
-#                 ax=get_ax())
-
-
-
-
 def detect_and_color_splash(model, image_path=None, video_path=None):
     assert image_path or video_path
 
@@ -332,10 +234,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         splash = color_splash(image, r['masks'])
         # Save output
         file_name = "splash_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
-        # skimage.io.imsave(file_name, splash)
-        visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'],
-                             ['BG', 'balloon'], r['scores'],
-                            title="Predictions")
+        skimage.io.imsave(file_name, splash)
     elif video_path:
         import cv2
         # Video capture
@@ -466,7 +365,6 @@ if __name__ == '__main__':
     elif args.command == "splash":
         detect_and_color_splash(model, image_path=args.image,
                                 video_path=args.video)
-        # final_detection(model, image_path=args.image, video_path=args.video)
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))
