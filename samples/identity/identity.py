@@ -47,6 +47,12 @@ class IdentityConfig(Config):
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
 
+    # MINI_MASK_SHAPE = (100, 100)
+    # POST_NMS_ROIS_TRAINING = 6000
+    # POST_NMS_ROIS_INFERENCE = 3000
+    # RPN_ANCHOR_RATIOS = [0.05, 0.1, 0.2]
+    # RPN_BBOX_STD_DEV = np.array([0.12, 0.12, 0.24, 0.24])
+    # BBOX_STD_DEV = np.array([0.11, 0.11, 0.22, 0.22])
 
 class IdentityDataset(utils.Dataset):
     def load_identity(self, dataset_dir, subset):
@@ -155,7 +161,7 @@ def color_splash(image, mask):
     """
     # Make a grayscale copy of the image. The grayscale copy still
     # has 3 RGB channels, though.
-    gray = skimage.color.gray2rgb(skimage.color.rgb2gray(image)) * 0
+    gray = skimage.color.gray2rgb(skimage.color.rgb2gray(image)) * 100
     plt.imshow(gray)
     # Copy color pixels from the original color image where mask is set
     if mask.shape[-1] > 0:
@@ -274,7 +280,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         splash = color_splash(image, r['masks'])
         # Save output
         file_name = "splash_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
-        skimage.io.imsave(file_name, splash)
+        skimage.io.imsave('result/' + file_name, splash)
         # vzl.display_instances(image, r['rois'], r['masks'], r['class_ids'],
         #                             ['BG', 'identity'], r['scores'],
         #                             title="Predictions")
