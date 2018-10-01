@@ -54,7 +54,7 @@ class IdentityConfig(Config):
     RPN_BBOX_STD_DEV = np.array([0.22, 0.22, 0.22, 0.22])
     #BBOX_STD_DEV = np.array([0.11, 0.11, 0.22, 0.22])
     RPN_ANCHOR_SCALES = (64, 128, 256, 512, 1024)
-    DETECTION_NMS_THRESHOLD = 0.95
+    DETECTION_NMS_THRESHOLD = 0.99
 
 class IdentityDataset(utils.Dataset):
     def load_identity(self, dataset_dir, subset):
