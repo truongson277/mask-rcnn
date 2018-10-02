@@ -11,4 +11,12 @@ Em chỉ chọn các anchor có chưa đối tượng có tỷ lệ >0.9
 Em bỏ đi scale 32 thêm vào 1024.
 Em loại đi các anchor có tỷ lệ 32x32. 
 
+# Bounding box refinement standard deviation for RPN and final detections.
+    RPN_BBOX_STD_DEV = np.array([0.1, 0.1, 0.2, 0.2])
+    BBOX_STD_DEV = np.array([0.1, 0.1, 0.2, 0.2])
+
+em thay đổi RPN_BBOX_STD_DEV = np.array([0.22, 0.22, 0.22, 0.22])
+Cái này là độ lệch chuẩn trong tính toán hồi quy. Khi em tăng lên thì thấy kết quả tốt hơn. :D nhưng không hiểu rõ về nó. Nhờ a support thêm
+Em đọc ở đây ạ: https://github.com/matterport/Mask_RCNN/issues/270#issuecomment-367502544
+
 
