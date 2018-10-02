@@ -47,14 +47,13 @@ class IdentityConfig(Config):
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
 
-    MINI_MASK_SHAPE = (100, 100)
-    POST_NMS_ROIS_TRAINING = 6000
-    POST_NMS_ROIS_INFERENCE = 3000
+
     RPN_ANCHOR_RATIOS = [0.75, 1.5, 3]
     RPN_BBOX_STD_DEV = np.array([0.22, 0.22, 0.22, 0.22])
-    #BBOX_STD_DEV = np.array([0.11, 0.11, 0.22, 0.22])
     RPN_ANCHOR_SCALES = (64, 128, 256, 512, 1024)
-    DETECTION_NMS_THRESHOLD = 0.99
+    DETECTION_NMS_THRESHOLD = 0.9
+
+
 
 class IdentityDataset(utils.Dataset):
     def load_identity(self, dataset_dir, subset):
