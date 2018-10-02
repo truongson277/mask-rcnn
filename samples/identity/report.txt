@@ -1,0 +1,14 @@
+Các param ảnh hưởng đến output: 
+
+# Non-maximum suppression threshold for detection
+    DETECTION_NMS_THRESHOLD = 0.3
+Em tăng tỷ lệ chọn lên 0.9
+Em chỉ chọn các anchor có chưa đối tượng có tỷ lệ >0.9
+
+# Length of square anchor side in pixels
+    RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)
+
+Em bỏ đi scale 32 thêm vào 1024.
+Em loại đi các anchor có tỷ lệ 32x32. 
+
+
